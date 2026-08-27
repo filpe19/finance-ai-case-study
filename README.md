@@ -1,145 +1,145 @@
 # Finance AI
 
-### AI / Telegram / Automation / Financial Assistant
+### IA / Telegram / Automação / Assistente Financeiro
 
-## Overview
+## Visão Geral
 
-Finance AI is a private Telegram-based financial assistant documented here as a safe public engineering case study.
+Finance AI é um assistente financeiro privado baseado em Telegram documentado aqui como estudo de caso público e seguro.
 
-The product combines Telegram automation, natural-language financial input, voice processing, LLM-assisted interpretation, deterministic finance rules, subscription/billing flows and an administrative dashboard.
+O produto combina automação no Telegram, entrada financeira em linguagem natural, processamento de voz, interpretação assistida por LLM, regras financeiras determinísticas, fluxos de assinatura/cobrança e painel administrativo.
 
-This repository does not contain proprietary source code, credentials, bot tokens, production URLs, user data, database dumps or provider secrets.
+Este repositório não contém código proprietário, credenciais, bot tokens, URLs de produção, dados de usuários, dumps de banco ou secrets de provedores.
 
-## Problem
+## Problema
 
-Personal finance tools often require structured forms, but users naturally describe expenses, income, commitments and installments in conversational language.
+Ferramentas de finanças pessoais geralmente exigem formulários estruturados, mas usuários descrevem gastos, receitas, compromissos e parcelas em linguagem conversacional.
 
-The engineering challenge is allowing flexible natural-language input without letting an AI model become the source of financial truth, while also handling Telegram webhook retries, asynchronous processing, billing states and privacy.
+O desafio de engenharia é permitir entrada flexível em linguagem natural sem deixar o modelo de IA virar a fonte da verdade financeira, enquanto o sistema também lida com retries de webhook do Telegram, processamento assíncrono, estados de cobrança e privacidade.
 
-## Solution
+## Solução
 
-The private codebase implements a Laravel backend with Telegram webhook ingestion, queue-based processing, LLM-assisted intent extraction, deterministic finance services, MySQL persistence, Redis/Horizon workers, Telegram Stars billing and a React/TypeScript admin panel.
+O código privado implementa um backend Laravel com ingestão de webhooks Telegram, processamento em filas, extração de intenção com LLM, serviços financeiros determinísticos, persistência MySQL, workers Redis/Horizon, cobrança via Telegram Stars e painel admin React/TypeScript.
 
-The model helps interpret messages. The backend owns money calculation, validation, persistence and user state.
+O modelo ajuda a interpretar mensagens. O backend controla cálculo, validação, persistência e estado do usuário.
 
-## Product Flow
+## Fluxo do Produto
 
 ```mermaid
 flowchart LR
-    A[Telegram user] --> B[Webhook]
-    B --> C[Idempotent update record]
-    C --> D[Queue worker]
-    D --> E{Text or voice}
+    A[Usuario no Telegram] --> B[Webhook]
+    B --> C[Registro idempotente]
+    C --> D[Worker de fila]
+    D --> E{Texto ou voz}
     E --> F[Speech-to-text]
-    E --> G[LLM intent extraction]
+    E --> G[Extracao de intencao via LLM]
     F --> G
-    G --> H[Finance engine]
+    G --> H[Motor financeiro]
     H --> I[(MySQL)]
-    H --> J[Telegram reply]
+    H --> J[Resposta no Telegram]
 ```
 
-## System Architecture
+## Arquitetura do Sistema
 
 ```mermaid
 flowchart TB
-    A[Telegram Bot API] --> B[Laravel webhook endpoint]
-    B --> C[Telegram middleware and idempotency]
-    C --> D[Queue workers]
-    D --> E[AI provider layer]
-    D --> F[Finance domain services]
-    D --> G[Billing and entitlement services]
+    A[Telegram Bot API] --> B[Endpoint webhook Laravel]
+    B --> C[Middleware e idempotencia]
+    C --> D[Workers de fila]
+    D --> E[Camada de provedor IA]
+    D --> F[Servicos do dominio financeiro]
+    D --> G[Servicos de billing e entitlement]
     F --> H[(MySQL)]
-    D --> I[(Redis queues)]
+    D --> I[(Filas Redis)]
 
-    J[React admin panel] --> K[Admin API]
+    J[Painel admin React] --> K[API admin]
     K --> H
 
-    E --> L[DeepSeek / OpenAI-compatible provider]
-    E --> M[Speech-to-text provider]
+    E --> L[DeepSeek / provedor compativel OpenAI]
+    E --> M[Speech-to-text]
 ```
 
-## Tech Stack
+## Stack Técnica
 
 - Backend: Laravel 13, PHP 8.3/8.4.
-- Queues: Redis and Laravel Horizon.
-- Database: MySQL.
-- Admin frontend: React 19, TypeScript, Vite, Tailwind CSS.
-- AI: DeepSeek provider with OpenAI-compatible escape hatch.
-- Voice: Local whisper.cpp flow with hosted provider fallback support.
-- Messaging and billing: Telegram Bot API and Telegram Stars.
-- Observability: Sentry integration in the private codebase.
+- Filas: Redis e Laravel Horizon.
+- Banco de dados: MySQL.
+- Admin frontend: React 19, TypeScript, Vite e Tailwind CSS.
+- IA: provedor DeepSeek com opção compatível com OpenAI.
+- Voz: fluxo local com whisper.cpp e suporte a fallback hospedado.
+- Mensageria/cobrança: Telegram Bot API e Telegram Stars.
+- Observabilidade: integração Sentry no código privado.
 
-## Backend Engineering
+## Engenharia Backend
 
-The backend includes Telegram webhook handling, command routing, conversation processing, finance domain services, user isolation, subscriptions, Stars billing, refunds, engagement automation, admin metrics and system health endpoints.
+O backend inclui webhook Telegram, roteamento de comandos, processamento conversacional, serviços financeiros, isolamento de usuário, assinaturas, cobrança Stars, reembolsos, automações de engajamento, métricas admin e endpoints de health/readiness.
 
-Commands bypass the model when deterministic routing is safer. Conversational messages go through intent extraction and backend validation before any financial record is persisted.
+Comandos passam por rotas determinísticas quando isso é mais seguro. Mensagens conversacionais passam por extração de intenção e validação backend antes de qualquer registro financeiro ser persistido.
 
-## Data / Database
+## Dados / Banco de Dados
 
-The private data model includes users, Telegram updates, conversations, financial transactions, commitments, installments, budgets, recurring entries, reminders, AI usage, billing records, Stars ledger entries, audit logs and admin metrics.
+O modelo privado inclui usuários, updates Telegram, conversas, transações financeiras, compromissos, parcelas, orçamentos, recorrências, lembretes, uso de IA, registros de billing, ledger de Stars, logs de auditoria e métricas administrativas.
 
-Money is represented as integer cents to avoid floating-point drift in financial calculations.
+Valores monetários são representados em centavos inteiros para evitar drift de ponto flutuante.
 
-## Integrations
+## Integrações
 
-- Telegram Bot API for messages, callbacks and Stars billing.
-- DeepSeek for LLM-assisted financial intent extraction.
-- Speech-to-text integration for voice messages.
-- Redis/Horizon for asynchronous processing.
-- Sentry for error visibility.
+- Telegram Bot API para mensagens, callbacks e cobrança por Stars.
+- DeepSeek para extração de intenção financeira.
+- Speech-to-text para mensagens de voz.
+- Redis/Horizon para processamento assíncrono.
+- Sentry para visibilidade de erros.
 
-## Security
+## Segurança
 
-Security-relevant implementation details confirmed in the private codebase:
+Detalhes confirmados no código privado:
 
-- Telegram webhook secret validation middleware.
-- Idempotent webhook/update processing.
-- Opaque callback tokens without embedding financial values.
-- Session-based admin API with CSRF protection and optional TOTP 2FA.
-- User-isolated finance data.
-- Backend validation before persistence.
-- No provider keys or bot tokens published in this case study.
+- Middleware de validação de segredo do webhook Telegram.
+- Processamento idempotente de updates/webhooks.
+- Tokens opacos em callbacks, sem embutir valores financeiros.
+- API admin baseada em sessão com CSRF e TOTP 2FA opcional.
+- Dados financeiros isolados por usuário.
+- Validação backend antes da persistência.
+- Nenhuma chave de provedor ou bot token publicada neste case.
 
-## Engineering Challenges
+## Desafios de Engenharia
 
-- Keeping AI output advisory while backend services remain the financial source of truth.
-- Handling webhook retries without duplicate financial transactions.
-- Supporting voice input without blocking webhook response paths.
-- Managing model routing, timeout, invalid JSON and provider failure cases.
-- Representing commitments, installments, recurring transactions and realized spending consistently.
-- Implementing Telegram Stars billing and entitlement states.
-- Providing admin visibility without exposing private user data unnecessarily.
+- Manter a saída da IA como interpretação, enquanto serviços backend seguem como fonte da verdade financeira.
+- Tratar retries de webhook sem duplicar transações.
+- Suportar voz sem bloquear o caminho de resposta do webhook.
+- Lidar com roteamento de modelos, timeouts, JSON inválido e falhas de provedor.
+- Representar compromissos, parcelas, recorrências e gastos realizados de forma consistente.
+- Implementar cobrança via Telegram Stars e estados de entitlement.
+- Dar visibilidade administrativa sem expor dados privados de usuários desnecessariamente.
 
-## Testing & Reliability
+## Testes e Confiabilidade
 
-The private project contains tests for DeepSeek responses, invalid/empty AI output, retry and timeout behavior, local speech-to-text, Telegram webhook delivery, conversation flows, transaction lifecycle, user isolation, billing, Stars ledger, refunds, admin authentication, metrics and finance intelligence.
+O projeto privado contém testes para respostas DeepSeek, saída inválida/vazia da IA, retry e timeout, speech-to-text local, entrega de webhook Telegram, fluxos conversacionais, ciclo de vida de transações, isolamento de usuário, billing, ledger Stars, reembolsos, autenticação admin, métricas e inteligência financeira.
 
-The deployment runbook includes health and readiness endpoints, queue workers, scheduler operation, backup/restore procedures and smoke tests.
+O runbook de deploy inclui health/readiness, workers de fila, scheduler, backup/restore e smoke tests.
 
-## Infrastructure & Deployment
+## Infraestrutura e Deploy
 
-The private documentation describes a VPS-style production setup with Nginx, PHP-FPM, MySQL, Redis, queue workers, scheduler, Certbot, log rotation and deploy automation.
+A documentação privada descreve produção em VPS com Nginx, PHP-FPM, MySQL, Redis, workers, scheduler, Certbot, rotação de logs e automação de deploy.
 
-Exact production domains, secrets, bot tokens and server paths are intentionally not published.
+Domínios, secrets, bot tokens e caminhos de servidor não são publicados.
 
-## Production
+## Produção
 
-The project includes production-oriented runbooks for deployment, Telegram webhook configuration, workers, scheduler, health checks and operational controls. This case study exposes the engineering architecture without exposing the live operational surface.
+O projeto inclui runbooks de produção para deploy, configuração de webhook Telegram, workers, scheduler, health checks e controles operacionais. Este case expõe a arquitetura sem expor a superfície operacional real.
 
-## Screenshots
+## Capturas de Tela
 
-Screenshots are not included in this repository because conversation and financial interfaces can easily expose private user data. Only sanitized captures should be added later.
+Capturas de tela não foram incluídas porque interfaces conversacionais e financeiras podem expor dados privados com facilidade. Somente capturas sanitizadas devem ser adicionadas futuramente.
 
-## My Role / What I Built
+## Meu Papel / O Que Construí
 
-This case demonstrates backend, AI-assisted product engineering and automation: Telegram integration, Laravel services, LLM workflow design, deterministic financial logic, queues, billing, admin tooling, tests and production deployment preparation.
+Este case demonstra backend, IA aplicada e automação: integração Telegram, serviços Laravel, desenho de workflow com LLM, lógica financeira determinística, filas, billing, admin, testes e preparação de produção.
 
-## Key Engineering Decisions
+## Decisões Técnicas Principais
 
-- Use the LLM for interpretation, not as the system of record.
-- Store money as integer cents.
-- Make Telegram webhook processing idempotent and queue-backed.
-- Keep callback payloads opaque.
-- Separate user-facing automation from admin operations and billing controls.
-- Publish a safe case study instead of private source code.
+- Usar LLM para interpretação, não como sistema de registro.
+- Armazenar dinheiro em centavos inteiros.
+- Processar webhooks Telegram de forma idempotente e assíncrona.
+- Manter payloads de callback opacos.
+- Separar automação do usuário de operações admin e billing.
+- Publicar estudo de caso seguro em vez de código privado.
