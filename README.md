@@ -1,24 +1,26 @@
-# Finance AI
+# Nix · Assistente IA
 
-### IA / Telegram / Automação / Assistente Financeiro
+### IA / WhatsApp e Telegram / Automação / Assistente Financeiro
+
+No ar em [assistenteia.online](https://assistenteia.online). *Finance AI* é o nome interno do projeto.
 
 ## Visão Geral
 
-Finance AI é um assistente financeiro privado baseado em Telegram documentado aqui como estudo de caso público e seguro.
+Nix é um assistente financeiro que funciona no WhatsApp e no Telegram. A pessoa conta o que gastou, por texto ou áudio, e ele mantém o registro, com relatórios, orçamentos e metas. O código é privado; este repositório documenta o produto como estudo de caso.
 
-O produto combina automação no Telegram, entrada financeira em linguagem natural, processamento de voz, interpretação assistida por LLM, regras financeiras determinísticas, fluxos de assinatura/cobrança e painel administrativo.
+O produto combina mensageria no WhatsApp e no Telegram, entrada financeira em linguagem natural, processamento de voz, interpretação assistida por LLM, regras financeiras determinísticas, fluxos de assinatura/cobrança e painel administrativo.
 
-Este repositório não contém código proprietário, credenciais, bot tokens, URLs de produção, dados de usuários, dumps de banco ou secrets de provedores.
+Este repositório não contém código proprietário, credenciais, bot tokens, dados de usuários, dumps de banco ou secrets de provedores.
 
 ## Problema
 
 Ferramentas de finanças pessoais geralmente exigem formulários estruturados, mas usuários descrevem gastos, receitas, compromissos e parcelas em linguagem conversacional.
 
-O desafio de engenharia é permitir entrada flexível em linguagem natural sem deixar o modelo de IA virar a fonte da verdade financeira, enquanto o sistema também lida com retries de webhook do Telegram, processamento assíncrono, estados de cobrança e privacidade.
+O desafio de engenharia é permitir entrada flexível em linguagem natural sem deixar o modelo de IA virar a fonte da verdade financeira, enquanto o sistema também lida com retries de webhook dos dois canais, processamento assíncrono, estados de cobrança e privacidade.
 
 ## Solução
 
-O código privado implementa um backend Laravel com ingestão de webhooks Telegram, processamento em filas, extração de intenção com LLM, serviços financeiros determinísticos, persistência MySQL, workers Redis/Horizon, cobrança via Telegram Stars e painel admin React/TypeScript.
+O código privado implementa um backend Laravel com ingestão de webhooks do WhatsApp Cloud API e do Telegram, processamento em filas, extração de intenção com LLM, serviços financeiros determinísticos, persistência MySQL, workers Redis/Horizon, cobrança via Mercado Pago e Telegram Stars e painel admin React/TypeScript.
 
 O modelo ajuda a interpretar mensagens. O backend controla cálculo, validação, persistência e estado do usuário.
 
@@ -26,7 +28,7 @@ O modelo ajuda a interpretar mensagens. O backend controla cálculo, validação
 
 ```mermaid
 flowchart LR
-    A[Usuario no Telegram] --> B[Webhook]
+    A[Usuario no WhatsApp ou Telegram] --> B[Webhook]
     B --> C[Registro idempotente]
     C --> D[Worker de fila]
     D --> E{Texto ou voz}
@@ -35,14 +37,15 @@ flowchart LR
     F --> G
     G --> H[Motor financeiro]
     H --> I[(MySQL)]
-    H --> J[Resposta no Telegram]
+    H --> J[Resposta no mesmo canal, texto ou voz]
 ```
 
 ## Arquitetura do Sistema
 
 ```mermaid
 flowchart TB
-    A[Telegram Bot API] --> B[Endpoint webhook Laravel]
+    A[WhatsApp Cloud API] --> B[Endpoints webhook Laravel]
+    A2[Telegram Bot API] --> B
     B --> C[Middleware e idempotencia]
     C --> D[Workers de fila]
     D --> E[Camada de provedor IA]
@@ -65,13 +68,14 @@ flowchart TB
 - Banco de dados: MySQL.
 - Admin frontend: React 19, TypeScript, Vite e Tailwind CSS.
 - IA: provedor DeepSeek com opção compatível com OpenAI.
-- Voz: fluxo local com whisper.cpp e suporte a fallback hospedado.
-- Mensageria/cobrança: Telegram Bot API e Telegram Stars.
+- Voz: transcrição local com whisper.cpp e fallback hospedado; respostas em áudio por síntese de voz.
+- Mensageria: WhatsApp Cloud API (Meta) e Telegram Bot API.
+- Cobrança: Mercado Pago e Telegram Stars.
 - Observabilidade: integração Sentry no código privado.
 
 ## Engenharia Backend
 
-O backend inclui webhook Telegram, roteamento de comandos, processamento conversacional, serviços financeiros, isolamento de usuário, assinaturas, cobrança Stars, reembolsos, automações de engajamento, métricas admin e endpoints de health/readiness.
+O backend inclui webhooks do WhatsApp e do Telegram, uma camada de mensageria comum aos dois canais, roteamento de comandos, processamento conversacional, serviços financeiros, isolamento de usuário, assinaturas, cobrança Stars, reembolsos, automações de engajamento, métricas admin e endpoints de health/readiness.
 
 Comandos passam por rotas determinísticas quando isso é mais seguro. Mensagens conversacionais passam por extração de intenção e validação backend antes de qualquer registro financeiro ser persistido.
 
@@ -83,7 +87,9 @@ Valores monetários são representados em centavos inteiros para evitar drift de
 
 ## Integrações
 
+- WhatsApp Cloud API para mensagens, áudios e botões.
 - Telegram Bot API para mensagens, callbacks e cobrança por Stars.
+- Mercado Pago para assinatura e checkout.
 - DeepSeek para extração de intenção financeira.
 - Speech-to-text para mensagens de voz.
 - Redis/Horizon para processamento assíncrono.
@@ -93,7 +99,7 @@ Valores monetários são representados em centavos inteiros para evitar drift de
 
 Detalhes confirmados no código privado:
 
-- Middleware de validação de segredo do webhook Telegram.
+- Validação de assinatura/segredo nos webhooks do WhatsApp e do Telegram.
 - Processamento idempotente de updates/webhooks.
 - Tokens opacos em callbacks, sem embutir valores financeiros.
 - API admin baseada em sessão com CSRF e TOTP 2FA opcional.
@@ -113,7 +119,7 @@ Detalhes confirmados no código privado:
 
 ## Testes e Confiabilidade
 
-O projeto privado contém testes para respostas DeepSeek, saída inválida/vazia da IA, retry e timeout, speech-to-text local, entrega de webhook Telegram, fluxos conversacionais, ciclo de vida de transações, isolamento de usuário, billing, ledger Stars, reembolsos, autenticação admin, métricas e inteligência financeira.
+O projeto privado contém testes para respostas DeepSeek, saída inválida/vazia da IA, retry e timeout, speech-to-text local, entrega de webhooks do WhatsApp e do Telegram, fluxos conversacionais, ciclo de vida de transações, isolamento de usuário, billing, ledger Stars, reembolsos, autenticação admin, métricas e inteligência financeira.
 
 O runbook de deploy inclui health/readiness, workers de fila, scheduler, backup/restore e smoke tests.
 
@@ -125,21 +131,21 @@ Domínios, secrets, bot tokens e caminhos de servidor não são publicados.
 
 ## Produção
 
-O projeto inclui runbooks de produção para deploy, configuração de webhook Telegram, workers, scheduler, health checks e controles operacionais. Este case expõe a arquitetura sem expor a superfície operacional real.
+O projeto inclui runbooks de produção para deploy, configuração dos webhooks, workers, scheduler, health checks e controles operacionais. Este case expõe a arquitetura sem expor a superfície operacional real.
 
 ## Capturas de Tela
 
-Capturas de tela não foram incluídas porque interfaces conversacionais e financeiras podem expor dados privados com facilidade. Somente capturas sanitizadas devem ser adicionadas futuramente.
+Capturas de tela não foram incluídas porque interfaces conversacionais e financeiras podem expor dados privados com facilidade.
 
 ## Meu Papel / O Que Construí
 
-Este case demonstra backend, IA aplicada e automação: integração Telegram, serviços Laravel, desenho de workflow com LLM, lógica financeira determinística, filas, billing, admin, testes e preparação de produção.
+Este case demonstra backend, IA aplicada e automação: integrações WhatsApp e Telegram, serviços Laravel, desenho de workflow com LLM, lógica financeira determinística, filas, billing, painel admin com custo de IA por uso, testes e operação em produção.
 
 ## Decisões Técnicas Principais
 
 - Usar LLM para interpretação, não como sistema de registro.
 - Armazenar dinheiro em centavos inteiros.
-- Processar webhooks Telegram de forma idempotente e assíncrona.
+- Processar webhooks de forma idempotente e assíncrona, nos dois canais.
 - Manter payloads de callback opacos.
 - Separar automação do usuário de operações admin e billing.
 - Publicar estudo de caso seguro em vez de código privado.
